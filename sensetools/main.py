@@ -10,10 +10,9 @@ def cli():
     pass
 
 
-@cli.group()
-@click.argument('directory', help='Directory to trials',
-                type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path)
-                )
+@cli.command()
+@click.argument('directory',
+                type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
 def summarise(directory):
     summary(directory)
 
