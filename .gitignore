@@ -1,5 +1,6 @@
 # Project stuff
-
+*.h5
+*.pkl
 .idea
 
 # Byte-compiled  optimized / DLL files
