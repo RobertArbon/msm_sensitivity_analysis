@@ -45,10 +45,10 @@ def series_summary(s: pd.Series) -> pd.DataFrame:
     controls = list(s.index.names)
     controls.remove('bs_ix')
     df = s.groupby(controls).agg(
-            median = lambda x: np.quantile(x, 0.5),
-            lb = lambda x: np.quantile(x, 0.025),
-            ub = lambda x: np.quantile(x, 0.975),
-            count = lambda x: x.shape[0]-x.isna().sum()
+            median=lambda x: np.quantile(x, 0.5),
+            lb=lambda x: np.quantile(x, 0.025),
+            ub=lambda x: np.quantile(x, 0.975),
+            count=lambda x: x.shape[0]-x.isna().sum()
 
     )
     return df
@@ -70,7 +70,6 @@ def main(directory: Path) -> None:
 
     for hp_dir in hp_dirs:
         results = collate_results(hp_dir)
-        results['timescales'].to_hdf(str(directory.joinpath('raw_ts.h5')), key='ts')
         summaries = summarise_results(results)
         for k, v in summaries.items():
             try:
