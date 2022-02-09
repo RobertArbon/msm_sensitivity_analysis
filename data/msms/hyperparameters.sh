@@ -13,7 +13,7 @@ conda activate msmsense
 
 msmsense hyperparameters \
  -i searchspace.yaml \
- -n 1 \
+ -n 100 \
  -o hpsample.h5 \
  -s 278346826
 

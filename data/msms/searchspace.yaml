@@ -28,5 +28,7 @@ tica__dim:
 tica__lag:
 - 1
 - 100
+tica__kinetic_map:
+- True
 tica__stride:
 - 1
