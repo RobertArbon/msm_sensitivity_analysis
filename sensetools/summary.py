@@ -15,13 +15,13 @@ def extract_result(results: Dict, key: str) -> pd.Series:
     return s
 
 
-def gradient(s: pd.Series, denominator: str) -> pd.Series:
+def gradient(s: pd.Series, denominator: str, periods: int = 1) -> pd.Series:
     controls = list(s.index.names)
     controls.remove(denominator)
     index_names = controls + [denominator]
     s = s.sort_index(level=index_names, inplace=False)
-    dy = s.groupby(controls).diff()
-    dx = s.index.get_level_values(denominator).to_series().diff().values
+    dy = s.groupby(controls).diff(periods=periods)
+    dx = s.index.get_level_values(denominator).to_series().diff(periods=periods).values
     grad = pd.Series(dy/dx)
     return grad
 
@@ -31,7 +31,9 @@ def collate_results(hp_directory: Path) -> Dict[str, pd.Series]:
     results = {x.stem: pickle.load(x.open('rb')) for x in bs_paths}
     vamps = extract_result(results, key='vamp')
     ts = extract_result(results, key='ts')
-    ts_proc_grad = np.exp(gradient(np.log(ts), denominator='process'))
+    # The periods variable aligns the ratio with the correct process.
+    # The (-1) gets the ratio the correct way round (ts_2/ts_3) as the periods affects both the demon and numer.
+    ts_proc_grad = np.exp((-1)*gradient(np.log(ts), denominator='process', periods=-1))
     ts_lag_grad = gradient(np.log(ts), denominator='lag')
     results = dict(
         vamps=vamps,
