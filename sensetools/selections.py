@@ -113,3 +113,6 @@ def select_dominant(summary: Path, output_directory: Path, cutoff: int) -> None:
         plt.tight_layout()
         print(f"Saved image at {output_directory.joinpath(f'{name}_timescale_gap.pdf')}")
         plt.savefig(output_directory.joinpath(f'{name}_timescale_gap.pdf'), bbox_inches='tight')
+
+
+# def select_models()
