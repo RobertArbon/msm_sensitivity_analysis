@@ -22,6 +22,20 @@ def feature_labeller(x):
             return 'logit(dist.)'
 
 
+def vamps_and_features(summary: Path, hp_definitions: Path) -> pd.DataFrame:
+    # Select vamp scores
+    vamps = pd.DataFrame(pd.read_hdf(summary, key='vamps'))
+
+    # Add labels for features
+    hps = pd.read_hdf(hp_definitions, key='hyperparameters')
+    features = hps.apply(feature_labeller, axis=1)
+    print(hps.head())
+    print(features.rename('feature').head())
+    print(vamps.head())
+    vamps = vamps.merge(right=features.rename('feature'), left_index=True, right_index=True, how='left')
+    return vamps
+
+
 def plot_vamps_ranked(summary: Path, hp_definitions: Path, output_directory: Path) -> None:
     with h5py.File(summary, 'r') as f:
         grp = f['summary']
@@ -29,17 +43,12 @@ def plot_vamps_ranked(summary: Path, hp_definitions: Path, output_directory: Pat
         lag = int(grp.attrs['chosen_lag'])
         name = grp.attrs['protein_name']
 
-    # Select vamp scores
-    vamps = pd.DataFrame(pd.read_hdf(summary, key='vamps'))
+    vamps = vamps_and_features(summary, hp_definitions)
+
     vamps.reset_index(level=['lag', 'process'], inplace=True)
-    vamps = vamps.loc[(vamps.process==k) & (vamps.lag==lag), :]
+    vamps = vamps.loc[(vamps.process == k) & (vamps.lag == lag), :]
     vamps.drop(labels=['lag', 'process'], inplace=True, axis=1)
     vamps.sort_index(inplace=True)
-
-    # Add labels for features
-    hps = pd.read_hdf(hp_definitions, key='hyperparameters')
-    features = hps.apply(feature_labeller, axis=1)
-    vamps = vamps.merge(right=features.rename('feature'), left_index=True, right_index=True, how='left')
 
     # Cleaning for plotting
     cat_type = CategoricalDtype(categories=np.sort(vamps.feature.unique()), ordered=True)
