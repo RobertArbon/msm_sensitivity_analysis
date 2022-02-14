@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 import pickle
 from pathlib import Path
 
@@ -62,31 +62,43 @@ def summarise_results(results: Dict[str, pd.Series]) -> Dict[str, pd.DataFrame]:
     return summary
 
 
-def write_summaries(out_dir: Path, summaries: Dict[str, pd.DataFrame], protein_name: str, protein_label: str) -> None:
+def write(out_dir: Path, summaries: Dict[str, Union[pd.DataFrame, pd.Series]], protein_name: str, protein_label: str,
+          file_name: str = 'summary') -> None:
     for k, v in summaries.items():
-        v.to_hdf(str(out_dir.joinpath("summary.h5")), key=k)
-    with h5py.File(out_dir.joinpath("summary.h5"), 'a') as f:
-        grp = f.create_group('summary')
+        v.to_hdf(str(out_dir.joinpath(f"{file_name}.h5")), key=k)
+    with h5py.File(out_dir.joinpath(f"{file_name}.h5"), 'a') as f:
+        grp = f.create_group(f"{file_name}")
         grp.attrs['protein_name'] = protein_name
         grp.attrs['protein_label'] = protein_label
 
 
-def main(directory: Path) -> None:
+def main(directory: Path, dump_raw: bool) -> None:
+    label = directory.stem
+    names_by_labels = {'1fme': 'BBA'}
+
     hp_dirs = [x for x in directory.glob('*') if x.is_dir()]
     all_summaries = dict()
-
+    all_raw = dict()
     for hp_dir in hp_dirs:
         results = collate_results(hp_dir)
+        if dump_raw:
+            for k, v in results.items():
+                try:
+                    all_raw[k] = pd.concat([all_raw[k], v])
+                except KeyError:
+                    all_raw[k] = v
+
         summaries = summarise_results(results)
         for k, v in summaries.items():
             try:
                 all_summaries[k] = pd.concat([all_summaries[k], v])
             except KeyError:
                 all_summaries[k] = v
+    if dump_raw:
+        print("Dumping raw results")
+        write(directory, all_raw, protein_name=names_by_labels[label], protein_label=label, file_name='raw')
 
-    names_by_labels = {'1fme': 'BBA'}
-    label = directory.stem
-    write_summaries(directory, all_summaries, protein_name=names_by_labels[label], protein_label=label)
+    write(directory, all_summaries, protein_name=names_by_labels[label], protein_label=label)
 
 
 
