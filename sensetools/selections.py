@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 import numpy as np
@@ -10,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 from pandas.api.types import CategoricalDtype
 
+from .plots import vamps_and_features
 
 def select_lag(summary: Path, output_directory: Path, cutoff: float, proc: int = 2, units: str = 'ns') -> None:
     grad_cutoff = np.log(1+cutoff)
@@ -115,4 +117,40 @@ def select_dominant(summary: Path, output_directory: Path, cutoff: int) -> None:
         plt.savefig(output_directory.joinpath(f'{name}_timescale_gap.pdf'), bbox_inches='tight')
 
 
-# def select_models()
+def select_model(summary: Path, hp_definitions: Path) -> None:
+    with h5py.File(summary, 'r') as f:
+        grp = f['summary']
+        lag = int(grp.attrs['chosen_lag'])
+        k = int(grp.attrs['chosen_k'])
+        name = grp.attrs['protein_name']
+
+    results = dict()
+
+    # Get VAMP scores
+    vamps = vamps_and_features(summary, hp_definitions)
+    vamps.reset_index(level=['lag'], inplace=True)
+    vamps = vamps.loc[vamps.lag == lag, :]
+
+    # Fix k and select
+    vamps_k = vamps.reset_index(level=['process'])
+    vamps_k = vamps.loc[vamps.process == k, :]
+    vamps_k = vamps_k.drop(labels=['lag', 'process'], axis=1)
+
+    vamps_k['rank'] = vamps_k['median'].rank(ascending=False)
+    vamps_k.sort_values(by='rank', inplace=True, ascending=True)
+    vamps_k['rank_by_feature'] = vamps_k.groupby(['feature'], as_index=False)['median'].rank(ascending=False)
+
+    results['fixed_k'] = vamps_k.loc[vamps_k.rank_by_feature == 1, :].index
+    results['worst'] = vamps_k.loc[vamps_k['rank'] == vamps_k['rank'].max(), :].index
+
+    # Add gaps in
+    gaps = pd.DataFrame(pd.read_hdf(summary, key='timescale_ratio'))
+    gaps.reset_index(level=['lag'], inplace=True)
+    gaps = gaps.loc[gaps.lag == lag, :]
+    gaps = gaps.drop(labels=['lag'], axis=1)
+
+    suffixes = ['_vamp', '_gap']
+    vamps = vamps.merge(gaps, left_index=True, right_index=True, how='left', suffixes=suffixes)
+
+
+
