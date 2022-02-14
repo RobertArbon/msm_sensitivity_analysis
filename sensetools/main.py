@@ -6,6 +6,7 @@ from .summary import main as summary
 from .selections import select_dominant, select_lag
 from .plots import plot_vamps_ranked, plot_vamps_vs_gap
 
+
 @click.group()
 def cli():
     pass
@@ -14,8 +15,10 @@ def cli():
 @cli.command()
 @click.argument('directory',
                 type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path))
-def summarise(directory):
-    summary(directory)
+@click.option('-r', '--dump-raw', is_flag=True, help="dump the raw values as well (large file)")
+def summarise(directory, dump_raw):
+    summary(directory, dump_raw)
+
 
 @cli.group()
 def select():
@@ -26,7 +29,7 @@ def select():
 @click.argument('summary',
                 type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path))
 @click.argument('output_directory',
-                type = click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
+                type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
 @click.option('-c', '--cutoff', required=True, help='Cutoff gradient for convergence', default=0.01, type=float,
               show_default=True )
 def lag(summary, output_directory, cutoff):
