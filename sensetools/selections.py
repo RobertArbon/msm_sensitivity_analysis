@@ -13,6 +13,7 @@ from pandas.api.types import CategoricalDtype
 
 from .plots import vamps_and_features
 
+
 def select_lag(summary: Path, output_directory: Path, cutoff: float, proc: int = 2, units: str = 'ns') -> None:
     grad_cutoff = np.log(1+cutoff)
 
@@ -117,7 +118,7 @@ def select_dominant(summary: Path, output_directory: Path, cutoff: int) -> None:
         plt.savefig(output_directory.joinpath(f'{name}_timescale_gap.pdf'), bbox_inches='tight')
 
 
-def select_model(summary: Path, hp_definitions: Path) -> None:
+def select_model(summary: Path, hp_definitions: Path, cutoff: float) -> None:
     with h5py.File(summary, 'r') as f:
         grp = f['summary']
         lag = int(grp.attrs['chosen_lag'])
@@ -131,26 +132,69 @@ def select_model(summary: Path, hp_definitions: Path) -> None:
     vamps.reset_index(level=['lag'], inplace=True)
     vamps = vamps.loc[vamps.lag == lag, :]
 
+    ####################################################################################################################
+    # FIXED K
+    ####################################################################################################################
     # Fix k and select
     vamps_k = vamps.reset_index(level=['process'])
-    vamps_k = vamps.loc[vamps.process == k, :]
+    vamps_k = vamps_k.loc[vamps_k.process == k, :]
     vamps_k = vamps_k.drop(labels=['lag', 'process'], axis=1)
 
     vamps_k['rank'] = vamps_k['median'].rank(ascending=False)
     vamps_k.sort_values(by='rank', inplace=True, ascending=True)
     vamps_k['rank_by_feature'] = vamps_k.groupby(['feature'], as_index=False)['median'].rank(ascending=False)
 
-    results['fixed_k'] = vamps_k.loc[vamps_k.rank_by_feature == 1, :].index
-    results['worst'] = vamps_k.loc[vamps_k['rank'] == vamps_k['rank'].max(), :].index
+    # Record best hps
+    hps = list(vamps_k.loc[vamps_k.rank_by_feature == 1, :].index)
+    results['fixed_k'] = list(zip([k]*len(hps), hps))
 
+    # Record worst hps
+    hps = list(vamps_k.loc[vamps_k['rank'] == vamps_k['rank'].max(), :].index)
+    results['worst'] = list(zip([k]*len(hps), hps))
+
+
+    ####################################################################################################################
+    # TIMESCALE GAP
+    ####################################################################################################################
     # Add gaps in
     gaps = pd.DataFrame(pd.read_hdf(summary, key='timescale_ratio'))
     gaps.reset_index(level=['lag'], inplace=True)
     gaps = gaps.loc[gaps.lag == lag, :]
     gaps = gaps.drop(labels=['lag'], axis=1)
+    gaps.dropna(inplace=True)
 
     suffixes = ['_vamp', '_gap']
-    vamps = vamps.merge(gaps, left_index=True, right_index=True, how='left', suffixes=suffixes)
+    vamps = vamps.merge(gaps, left_index=True, right_index=True, how='inner', suffixes=suffixes)
+    vamps.reset_index(inplace=True)
 
+    # Select vamps within threshold
+    vamps['score_loss'] = 1-vamps['median_vamp']/vamps['process']
+    top = vamps.loc[vamps['score_loss'] < cutoff, :].copy()
 
+    # Select top gaps from remaining
+    top['gap_per_feature_rank'] = top.groupby('feature')['median_gap'].rank(ascending=False)
+    top.sort_values(by='score_loss', ascending=True, inplace=True)
 
+    hps = top.loc[top['gap_per_feature_rank'] == 1.0, 'hp_ix'].values
+    ks = top.loc[top['gap_per_feature_rank'] == 1.0, 'process'].values
+    results['timescale_gap'] = list(zip(ks, hps))
+
+    # Results dataframe
+    vamps['vamp_rank'] = vamps.groupby('process')['median_vamp'].rank(ascending=False)
+    results_df = []
+    for method, idxs in results.items():
+        for k, hp_ix in idxs:
+            df = vamps.loc[(vamps.hp_ix == hp_ix) & (vamps.process == k), :].copy()
+            df['method'] = method
+            results_df.append(df)
+    results_df = pd.concat(results_df)
+    results_df.to_hdf(summary, key='model_selection')
+
+    print(f'Selecting models based on fixed k ({k}) at lag {lag}:')
+    print(results_df.loc[results_df['method'] == 'fixed_k', :])
+    print()
+    print(f"Selecting the worst model overall based on fixed k ({k}) and lag {lag}:")
+    print(results_df.loc[results_df['method'] == 'worst', :])
+    print()
+    print(f"Selecting models based on the timescale gap:")
+    print(results_df.loc[results_df['method'] == 'timescale_gap', :])

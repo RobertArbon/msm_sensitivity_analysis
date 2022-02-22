@@ -11,7 +11,7 @@
 
 conda activate msmsense
 
-msmsense hyperparameters \
+msmsense sample \
  -n 100 \
  -o hpsample.h5
 

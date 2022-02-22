@@ -29,9 +29,6 @@ def vamps_and_features(summary: Path, hp_definitions: Path) -> pd.DataFrame:
     # Add labels for features
     hps = pd.read_hdf(hp_definitions, key='hyperparameters')
     features = hps.apply(feature_labeller, axis=1)
-    print(hps.head())
-    print(features.rename('feature').head())
-    print(vamps.head())
     vamps = vamps.merge(right=features.rename('feature'), left_index=True, right_index=True, how='left')
     return vamps
 

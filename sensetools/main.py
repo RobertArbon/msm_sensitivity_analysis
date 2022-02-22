@@ -3,7 +3,7 @@ from pathlib import Path
 import click
 
 from .summary import main as summary
-from .selections import select_dominant, select_lag
+from .selections import select_dominant, select_lag, select_model
 from .plots import plot_vamps_ranked, plot_vamps_vs_gap
 
 
@@ -48,10 +48,22 @@ def dominant(summary, output_directory, cutoff):
     output_directory.mkdir(exist_ok=True, parents=True)
     select_dominant(summary, output_directory, cutoff)
 
+
+@select.command()
+@click.argument('summary',
+                type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path))
+@click.argument('hp_definitions',
+                type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path))
+@click.option('-c', '--cutoff', required=True, help='Cutoff for VAMP loss', default=0.02, type=float,
+              show_default=True)
+def models(summary, hp_definitions, cutoff):
+    select_model(summary, hp_definitions, cutoff)
+
+
+
 @cli.group()
 def plot():
     pass
-
 
 @plot.command()
 @click.argument('summary',
