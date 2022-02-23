@@ -90,6 +90,8 @@ def plot_vamps_vs_gap(summary: Path, hp_definitions: Path, output_directory: Pat
             n_ks =int(grp.attrs['chosen_k']) + 1
         name = grp.attrs['protein_name']
 
+    selections = pd.read_hdf(summary, key='model_selection')
+
     # Select vamp scores with gaps
     vamps = pd.read_hdf(summary, key='vamps')
     gaps = pd.read_hdf(summary, key='timescale_ratio')
@@ -118,6 +120,8 @@ def plot_vamps_vs_gap(summary: Path, hp_definitions: Path, output_directory: Pat
 
     # Plots
     with sns.plotting_context('paper', font_scale=1.25):
+        markers = {'worst': 'P', 'fixed_k': 'o', 'timescale_gap': 'X'}
+
         n_cols = 2
         n_rows = n_ks // n_cols + (n_ks % n_cols) - 1
 
@@ -141,8 +145,11 @@ def plot_vamps_vs_gap(summary: Path, hp_definitions: Path, output_directory: Pat
 
                 y = df.loc[ix, 'median_vamp'].values
                 yerr = df.loc[ix, ['lb_err_vamp', 'ub_err_vamp']].values.T
-
-                ax.errorbar(x, y, xerr=xerr, yerr=yerr, lw=0, elinewidth=0.5, marker='o', color=cols[j], alpha=0.5, label=feat, ms=5)
+                if i == 0:
+                    ax.errorbar(x, y, xerr=xerr, yerr=yerr, lw=0, elinewidth=0.5, marker='o', color=cols[j], alpha=0.5, label=feat, ms=5)
+                else:
+                    ax.errorbar(x, y, xerr=xerr, yerr=yerr, lw=0, elinewidth=0.5, marker='o', color=cols[j], alpha=0.5,
+                                ms=5)
                 ax.set_xscale('log')
 
                 if i % n_cols == 0:
@@ -153,7 +160,34 @@ def plot_vamps_vs_gap(summary: Path, hp_definitions: Path, output_directory: Pat
                     
                 ax.annotate(text=f"$k={{{ks[i]}}}$", xy=(0.9, 0.95), ha='right', va='top', xycoords='axes fraction')
 
-        axes[0, -1].legend(bbox_to_anchor=(1, 1), loc='upper left')
+        all_methods = selections['method'].unique()
+        added_methods = []
+        for i, row in selections.iterrows():
+            k = row['process']
+            x = row['median_gap']
+            y = row['median_vamp']
+            label = row['method']
+            hp_ix = row['hp_ix']
+            feature = row['feature']
+            feat_ix = np.where(features == feature)[0][0]
+            ax_ix = np.where(ks == k)[0][0]
+            ax = axes.flatten()[ax_ix]
+            if (label not in added_methods) and (feature == features[0]):
+                ax.scatter(x, y, marker=markers[label], color=cols[feat_ix],
+                           label=label.replace('_', ' ').capitalize(),
+                           edgecolor='k', zorder=10, alpha=1, s=50)
+                added_methods.append(label)
+            else:
+                ax.scatter(x, y, marker=markers[label], color=cols[feat_ix],
+                           edgecolor='k', zorder=10, alpha=1, s=50)
+        handles = []
+        labels = []
+        for ax in axes.flatten():
+            h, l = ax.get_legend_handles_labels()
+            handles.extend(h)
+            labels.extend(l)
+
+        axes[0, -1].legend(handles=handles, labels=labels, bbox_to_anchor=(1, 1), loc='upper left')
         plt.tight_layout()
 
         out_fname = output_directory.joinpath(f'{name}_vamps_vs_gap.pdf')
