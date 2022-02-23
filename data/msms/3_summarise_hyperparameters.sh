@@ -39,4 +39,6 @@ fi
 
 sensetools select lag 1fme/summary.h5 1fme -c 0.01
 sensetools select dominant 1fme/summary.h5 1fme -c 5
+sensetools select models 1fme/summary.h5 hpsample.h5 -c 0.02
 sensetools plot vamps-ranked 1fme/summary.h5 hpsample.h5 1fme
+sensetools plot vamps-vs-gap 1fme/summary.h5 hpsample.h5 1fme
