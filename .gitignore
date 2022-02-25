@@ -3,7 +3,9 @@
 *.pkl
 .idea
 *.pdf
-/data/msms/1fme/log
+*.png
+data/msms/1fme
+
 
 # Byte-compiled  optimized / DLL files
 __pycache__/
