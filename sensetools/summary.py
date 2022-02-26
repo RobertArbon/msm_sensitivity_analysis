@@ -48,9 +48,9 @@ def series_summary(s: pd.Series) -> pd.DataFrame:
     controls = list(s.index.names)
     controls.remove('bs_ix')
     df = s.groupby(controls).agg(
-            median=lambda x: np.quantile(x, 0.5),
-            lb=lambda x: np.quantile(x, 0.025),
-            ub=lambda x: np.quantile(x, 0.975),
+            median=lambda x: np.nanquantile(x, 0.5),
+            lb=lambda x: np.nanquantile(x, 0.025),
+            ub=lambda x: np.nanquantile(x, 0.975),
             count=lambda x: x.shape[0]-x.isna().sum()
 
     )
@@ -72,11 +72,11 @@ def write(out_dir: Path, summaries: Dict[str, Union[pd.DataFrame, pd.Series]], p
         grp.attrs['protein_label'] = protein_label
 
 
-def main(directory: Path, dump_raw: bool) -> None:
-    label = directory.stem
+def main(directory: Path, dump_raw: bool, output_directory: Path) -> None:
+    label = output_directory.stem
     names_by_labels = {'1fme': 'BBA'}
-
     hp_dirs = [x for x in directory.glob('*') if x.is_dir()]
+    print(f"Summarising protein {names_by_labels[label]}\nNum HPs: {len(hp_dirs)}")
     all_summaries = dict()
     all_raw = dict()
     for hp_dir in hp_dirs:
@@ -96,9 +96,9 @@ def main(directory: Path, dump_raw: bool) -> None:
                 all_summaries[k] = v
     if dump_raw:
         print("Dumping raw results")
-        write(directory, all_raw, protein_name=names_by_labels[label], protein_label=label, file_name='raw')
+        write(output_directory, all_raw, protein_name=names_by_labels[label], protein_label=label, file_name='raw')
 
-    write(directory, all_summaries, protein_name=names_by_labels[label], protein_label=label)
+    write(output_directory, all_summaries, protein_name=names_by_labels[label], protein_label=label)
 
 
 
