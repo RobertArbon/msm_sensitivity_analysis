@@ -4,7 +4,7 @@ import click
 
 from .summary import main as summary
 from .selections import select_dominant, select_lag, select_model
-from .plots import plot_vamps_ranked, plot_vamps_vs_gap
+from .plots import plot_vamps_ranked, plot_vamps_vs_gap, implied_timescales
 
 
 @click.group()
@@ -15,9 +15,11 @@ def cli():
 @cli.command()
 @click.argument('directory',
                 type=click.Path(exists=True, file_okay=False, resolve_path=True, path_type=Path))
+@click.argument('output_directory',
+                type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
 @click.option('-r', '--dump-raw', is_flag=True, help="dump the raw values as well (large file)")
-def summarise(directory, dump_raw):
-    summary(directory, dump_raw)
+def summarise(directory, dump_raw, output_directory):
+    summary(directory, dump_raw, output_directory)
 
 
 @cli.group()
@@ -85,3 +87,12 @@ def vamps_ranked(summary,hp_definitions, output_directory):
                 type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
 def vamps_vs_gap(summary,hp_definitions, output_directory):
     plot_vamps_vs_gap(summary, hp_definitions, output_directory)
+
+
+@plot.command()
+@click.argument('summary',
+                type=click.Path(exists=True, dir_okay=False, resolve_path=True, path_type=Path))
+@click.argument('output_directory',
+                type=click.Path(exists=False, file_okay=False, resolve_path=True, path_type=Path))
+def its(summary, output_directory):
+    implied_timescales(summary, output_directory)
