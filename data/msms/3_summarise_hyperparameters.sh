@@ -33,12 +33,13 @@ export OMP_NUM_THREADS=1
 # -s 49587 \
 # {85..99}
 
-if [ ! -f "1fme/summary.h5" ]; then
-  sensetools summarise  1fme
+out_dir=/home/rob/Research/msm_sensitivity_analysis/analysis/1fme
+if [ ! -f "${out_dir}/summary.h5" ]; then
+  sensetools summarise -r 1fme/scores ${out_dir}
 fi
-
-sensetools select lag 1fme/summary.h5 1fme -c 0.01
-sensetools select dominant 1fme/summary.h5 1fme -c 5
-sensetools select models 1fme/summary.h5 hpsample.h5 -c 0.02
-sensetools plot vamps-ranked 1fme/summary.h5 hpsample.h5 1fme
-sensetools plot vamps-vs-gap 1fme/summary.h5 hpsample.h5 1fme
+#sensetools select lag ${out_dir}/summary.h5 ${out_dir} -c 0.01
+#sensetools select dominant ${out_dir}/summary.h5 ${out_dir} -c 5
+#sensetools select models ${out_dir}/summary.h5 hpsample.h5 -c 0.02
+#sensetools plot vamps-ranked ${out_dir}/summary.h5 hpsample.h5 ${out_dir}
+#sensetools plot vamps-vs-gap ${out_dir}/summary.h5 hpsample.h5 ${out_dir}
+sensetools plot its ${out_dir}/summary.h5 ${out_dir}
