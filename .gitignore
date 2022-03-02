@@ -5,6 +5,7 @@
 *.pdf
 *.png
 data/msms/1fme
+*.npy
 
 
 # Byte-compiled  optimized / DLL files
