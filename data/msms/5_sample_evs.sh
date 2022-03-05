@@ -19,10 +19,10 @@ export OMP_NUM_THREADS=1
 states=2
 n_cuts=50
 lag=41
-n_samples=2
-n_cores=2
+n_samples=100
+n_cores=6
 
-msmsense sample-evs \
+nohup msmsense sample-evs \
   -l ${lag} \
   -k ${states} \
   -q ${n_cuts} \
@@ -36,4 +36,3 @@ msmsense sample-evs \
   -s 49587 \
   53 52 60 47 86 81
 
-#  52 60 47 86 81

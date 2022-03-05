@@ -32,5 +32,3 @@ msmsense project-evs \
   -p 1fme/evs \
   52 53 47 60 81 86
 
-
-#  52 60 47 86 81
