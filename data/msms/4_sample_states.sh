@@ -12,15 +12,16 @@ n_samples=100
 
 for i in "${!states[@]}";
 do
-  msmsense sample-metastable \
-    -h "${hps[$i]}" \
-    -n "${states[$i]}" \
-    -l ${lag} \
-    -a ${n_samples} \
-    -i hpsample.h5 \
-    -d /home/rob/Data/DESRES \
-    -t  /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
-    -g '*1FME*/**/*.xtc' \
-    -o 1fme \
-    -s 49587
+  echo $i
+#  msmsense sample-metastable \
+#    -h "${hps[$i]}" \
+#    -n "${states[$i]}" \
+#    -l ${lag} \
+#    -a ${n_samples} \
+#    -i hpsample.h5 \
+#    -d /home/rob/Data/DESRES \
+#    -t  /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
+#    -g '*1FME*/**/*.xtc' \
+#    -o 1fme \
+#    -s 49587
 done
