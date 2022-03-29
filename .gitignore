@@ -4,6 +4,7 @@
 .idea
 *.pdf
 *.png
+*.pdb
 data/msms/1fme
 *.npy
 
