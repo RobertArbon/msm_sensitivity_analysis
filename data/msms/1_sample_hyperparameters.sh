@@ -9,10 +9,11 @@
 #                        Path to hd5 file to store HP samples
 #  -s SEED, --seed SEED  Random seed
 
-conda activate msmsense
+#conda activate msmsense
 
 msmsense sample \
- -n 100 \
- -o hpsample.h5
+ -n 10000 \
+ -o hpsample_long.h5
 
 
+# RUN THE TRUNCATE NOTEBOOK TO GET AN EVEN SAMPLE ACROSS ALL DIMENSIONS.

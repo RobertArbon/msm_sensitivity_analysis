@@ -33,14 +33,14 @@ export OMP_NUM_THREADS=1
 # -s 49587 \
 # {85..99}
 
-time msmsense score \
+msmsense score \
  -i hpsample.h5 \
  -d /home/rob/Data/DESRES \
- -t  /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
- -g '**/*.xtc' \
- -r 2 \
- -n 2 \
+ -t /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
+ -g '*1FME*/**/*.xtc' \
+ -r 100 \
+ -n 6 \
  -l 1:102:10 \
- -o 1fme/new \
+ -o 1fme_test \
  -s 49587 \
- 1
+ {0..140}
