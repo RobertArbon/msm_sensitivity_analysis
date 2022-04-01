@@ -20,6 +20,10 @@
 #
 export PYEMMA_NJOBS=1
 export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export VECLIB_MAXIMUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
 
 #time msmsense score \
 # -i hpsample.h5 \
@@ -39,8 +43,9 @@ msmsense score \
  -t /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
  -g '*1FME*/**/*.xtc' \
  -r 100 \
- -n 6 \
+ -n 4 \
  -l 1:102:10 \
- -o 1fme_test \
+ -o 1fme/test \
  -s 49587 \
- {0..140}
+ {60..139} &
+
