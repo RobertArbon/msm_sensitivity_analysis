@@ -10,4 +10,4 @@ msmsense dump-dtrajs \
   -g '*1FME*/**/*.xtc' \
   -o 1fme/dtrajs \
   -s 49587 \
-  53 52 60 47 86 81
+  120 24
