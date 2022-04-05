@@ -121,7 +121,7 @@ def samples_to_summary(samples: np.ndarray, lags: List[int],  hp_ix: int)-> pd.D
 def run(protein, hp_ix):
     seed = 49587
     n_bootstraps = 100
-    nits=25
+    nits=20
     
     rng = np.random.default_rng(seed)
     lags = list(range(1, 102, 10))
@@ -134,11 +134,11 @@ def run(protein, hp_ix):
     traj_paths.sort()
     assert traj_paths
 
-    source_ts = pd.DataFrame(pd.read_hdf(f'../data/msms/{protein}/summary.h5', key='timescales'))
-    source_vs = pd.DataFrame(pd.read_hdf(f'../data/msms/{protein}/summary.h5', key='vamps'))
+    source_ts = pd.DataFrame(pd.read_hdf(f'../analysis/{protein}/summary.h5', key='timescales'))
+    source_vs = pd.DataFrame(pd.read_hdf(f'../analysis/{protein}/summary.h5', key='vamps'))
 
 
-    ftrajs_all = featurizer(hps.iloc[hp_ix, :].to_dict(), traj_paths, top_path)
+    ftrajs_all = featurizer(hps.loc[hp_ix, :].to_dict(), traj_paths, top_path)
     # Bootstrap results
     ts_samples = []
     vs_samples = []
@@ -147,8 +147,8 @@ def run(protein, hp_ix):
         ftrajs = bootstrap(ftrajs_all, rng)
 
         assert len(ftrajs) == len(ftrajs_all)
-        ttrajs, tica_mod = tica(hps.iloc[hp_ix, :].to_dict(), ftrajs)
-        dtrajs, kmeans_mod = kmeans(hps.iloc[hp_ix, :].to_dict(), ttrajs, seed)
+        ttrajs, tica_mod = tica(hps.loc[hp_ix, :].to_dict(), ftrajs)
+        dtrajs, kmeans_mod = kmeans(hps.loc[hp_ix, :].to_dict(), ttrajs, seed)
         ts = its(dtrajs, lags, nits=nits)
         vs = score(dtrajs, lags, nits=nits)
 
