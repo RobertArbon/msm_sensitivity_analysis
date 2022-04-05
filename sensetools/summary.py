@@ -27,20 +27,22 @@ def gradient(s: pd.Series, denominator: str, periods: int = 1) -> pd.Series:
 
 
 def collate_results(hp_directory: Path) -> Dict[str, pd.Series]:
-    bs_paths = hp_directory.glob('*.pkl')
-    results = {x.stem: pickle.load(x.open('rb')) for x in bs_paths}
-    vamps = extract_result(results, key='vamp')
-    ts = extract_result(results, key='ts')
-    # The periods variable aligns the ratio with the correct process.
-    # The (-1) gets the ratio the correct way round (ts_2/ts_3) as the periods affects both the demon and numer.
-    ts_proc_grad = np.exp((-1)*gradient(np.log(ts), denominator='process', periods=-1))
-    ts_lag_grad = gradient(np.log(ts), denominator='lag')
-    results = dict(
-        vamps=vamps,
-        timescales=ts,
-        timescale_ratio=ts_proc_grad,
-        timescale_gradient=ts_lag_grad
-    )
+    bs_paths = list(hp_directory.glob('*.pkl'))
+    results = None
+    if len(bs_paths) > 0:
+        results = {x.stem: pickle.load(x.open('rb')) for x in bs_paths}
+        vamps = extract_result(results, key='vamp')
+        ts = extract_result(results, key='ts')
+        # The periods variable aligns the ratio with the correct process.
+        # The (-1) gets the ratio the correct way round (ts_2/ts_3) as the periods affects both the demon and numer.
+        ts_proc_grad = np.exp((-1)*gradient(np.log(ts), denominator='process', periods=-1))
+        ts_lag_grad = gradient(np.log(ts), denominator='lag')
+        results = dict(
+            vamps=vamps,
+            timescales=ts,
+            timescale_ratio=ts_proc_grad,
+            timescale_gradient=ts_lag_grad
+        )
     return results
 
 
@@ -81,19 +83,20 @@ def main(directory: Path, dump_raw: bool, output_directory: Path) -> None:
     all_raw = dict()
     for hp_dir in hp_dirs:
         results = collate_results(hp_dir)
-        if dump_raw:
-            for k, v in results.items():
-                try:
-                    all_raw[k] = pd.concat([all_raw[k], v])
-                except KeyError:
-                    all_raw[k] = v
+        if results is not None:
+            if dump_raw:
+                for k, v in results.items():
+                    try:
+                        all_raw[k] = pd.concat([all_raw[k], v])
+                    except KeyError:
+                        all_raw[k] = v
 
-        summaries = summarise_results(results)
-        for k, v in summaries.items():
-            try:
-                all_summaries[k] = pd.concat([all_summaries[k], v])
-            except KeyError:
-                all_summaries[k] = v
+            summaries = summarise_results(results)
+            for k, v in summaries.items():
+                try:
+                    all_summaries[k] = pd.concat([all_summaries[k], v])
+                except KeyError:
+                    all_summaries[k] = v
     if dump_raw:
         print("Dumping raw results")
         write(output_directory, all_raw, protein_name=names_by_labels[label], protein_label=label, file_name='raw')
