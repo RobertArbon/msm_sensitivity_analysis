@@ -37,7 +37,7 @@ export NUMEXPR_NUM_THREADS=1
 # -s 49587 \
 # {85..99}
 
-msmsense score \
+nohup time msmsense score \
  -i hpsample.h5 \
  -d /home/rob/Data/DESRES \
  -t /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
@@ -47,5 +47,5 @@ msmsense score \
  -l 1:102:10 \
  -o 1fme \
  -s 49587 \
- {0..139}
+ {0..139}  &
 
