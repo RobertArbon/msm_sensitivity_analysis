@@ -8,7 +8,10 @@
 data/msms/1fme
 *.npy
 *.csv
+*.log
+log
 
+nohup.out
 
 # Byte-compiled  optimized / DLL files
 __pycache__/
