@@ -43,9 +43,9 @@ nohup time msmsense score \
  -t /home/rob/Data/DESRES/DESRES-Trajectory_1FME-0-protein/1FME-0-protein/protein.pdb \
  -g '*1FME*/**/*.xtc' \
  -r 100 \
- -n 2 \
+ -n 1 \
  -l 1:102:10 \
  -o 1fme \
  -s 49587 \
- {0..139}  &
+ {8..139}  &
 
