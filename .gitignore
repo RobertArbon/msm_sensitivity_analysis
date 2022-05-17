@@ -9,6 +9,7 @@ data/msms/1fme
 *.npy
 *.csv
 *.log
+*.tar*
 log
 
 nohup.out
