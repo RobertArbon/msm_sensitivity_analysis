@@ -150,3 +150,5 @@ dmypy.json
 *.h5
 
 analysis/literature_review.xls
+
+*.db
