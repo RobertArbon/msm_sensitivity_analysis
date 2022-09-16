@@ -29,7 +29,7 @@ def fit(ix, ftrajs_all, hp_dict, seed, lag, score_k):
 
     msm = pm.msm.estimate_markov_model(dtrajs, lag=lag)
 
-    vamp_eq = np.sum(msm.eigenvalues(score_k)**2)
-    ts = msm.timescales(score_k)
-    gap = ts[-2]/ts[-1]
+    vamp_eq = np.sum(msm.eigenvalues(score_k)**2) # if score_k = 3 then I want:  1 + lambda_2^2 + lambda_3^2
+    evs = msm.eigenvalues(score_k+1) # if score_k = 3 then gap = lambda_3/lambda_4 (so need first 4 evs) 
+    gap = evs[-2]/evs[-1]
     return vamp_eq, gap
