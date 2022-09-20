@@ -33,3 +33,19 @@ def fit(ix, ftrajs_all, hp_dict, seed, lag, score_k):
     evs = msm.eigenvalues(score_k+1) # if score_k = 3 then gap = lambda_3/lambda_4 (so need first 4 evs) 
     gap = evs[-2]/evs[-1]
     return vamp_eq, gap
+
+
+def fit_ts(ix, ftrajs_all, hp_dict, seed, lag, score_k):
+    ftrajs = [ftrajs_all[i] for i in ix]
+
+    ttrajs, tica_mod = tica(hp_dict, ftrajs)
+    dtrajs, kmeans_mod = kmeans(hp_dict, ttrajs, seed)    
+
+    msm = pm.msm.estimate_markov_model(dtrajs, lag=lag)
+
+    timescale_sum = np.sum(msm.timescales(score_k-1)) # if score_k = 3 then I want:  t2 + t3
+    ts = msm.timescales(score_k) # if score_k = 3 then gap = t3/t4 (so need first 3 timescales) 
+    gap = ts[-2]/ts[-1]
+    return timescale_sum, gap
+
+
