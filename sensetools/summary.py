@@ -76,7 +76,7 @@ def write(out_dir: Path, summaries: Dict[str, Union[pd.DataFrame, pd.Series]], p
 
 def main(directory: Path, dump_raw: bool, output_directory: Path) -> None:
     label = output_directory.stem
-    names_by_labels = {'1fme': 'BBA'}
+    names_by_labels = {'1fme': 'BBA', 'CLN':'CLN'}
     hp_dirs = [x for x in directory.glob('*') if x.is_dir()]
     print(f"Summarising protein {names_by_labels[label]}\nNum HPs: {len(hp_dirs)}")
     all_summaries = dict()
@@ -97,6 +97,8 @@ def main(directory: Path, dump_raw: bool, output_directory: Path) -> None:
                     all_summaries[k] = pd.concat([all_summaries[k], v])
                 except KeyError:
                     all_summaries[k] = v
+        else:
+            print('results is NONE')
     if dump_raw:
         print("Dumping raw results")
         write(output_directory, all_raw, protein_name=names_by_labels[label], protein_label=label, file_name='raw')
